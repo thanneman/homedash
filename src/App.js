@@ -1,21 +1,22 @@
 import React, { Component } from 'react';
 import './App.css';
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
-import {
-  faYoutube,
-  faInstagram,
-  faTwitter,
-  faReddit,
-} from '@fortawesome/free-brands-svg-icons';
+import Links from './components/Links';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       search: '',
-      weather: [],
+      location: {
+        latitude: '',
+        longitude: '',
+      },
+      weatherdata: {
+        city_name: '',
+        description: '',
+        icon: '',
+        temp: '',
+      },
       headlines: [],
       error: null,
     };
@@ -33,7 +34,54 @@ class App extends Component {
     window.open(usersearch, '_blank');
   }
 
+  componentDidMount() {
+    navigator.geolocation.getCurrentPosition((position) => {
+      let lat = position.coords.latitude;
+      let lng = position.coords.longitude;
+      this.setState({
+        location: {
+          latitude: lat,
+          longitude: lng,
+        },
+      });
+      setTimeout(() => {
+        fetch(
+          `http://api.weatherbit.io/v2.0/current?lat=${this.state.location.latitude}&lon=${this.state.location.longitude}&units=I&key=${process.env.REACT_APP_WEATHER_KEY}`,
+          {
+            method: 'GET',
+          }
+        )
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(res.statusText);
+            }
+            return res.json();
+          })
+          .then((result) => {
+            //console.log(result.data[0].weather.icon);
+            const { temp, city_name } = result.data[0];
+            const { description, icon } = result.data[0].weather;
+            this.setState({
+              weatherdata: {
+                city_name,
+                description,
+                icon,
+                temp: temp.toFixed(1),
+              },
+            });
+          })
+          .catch((err) => {
+            this.setState({
+              error: 'Something went wrong. Please try a different search.',
+            });
+          });
+      }, 100);
+    });
+  }
+
   render() {
+    const iconImg = this.state.weatherdata.icon;
+    const imgUrl = `https://www.weatherbit.io/static/img/icons/${iconImg}.png`;
     return (
       <main className='app'>
         <section className='search'>
@@ -48,39 +96,20 @@ class App extends Component {
             />
           </form>
         </section>
-        <section className='links'>
-          <a
-            href='https://mail.google.com/mail/u/0/'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <FontAwesomeIcon icon={faEnvelope} size='sm' />
-          </a>
-          <a
-            href='https://www.youtube.com/'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <FontAwesomeIcon icon={faYoutube} size='sm' />
-          </a>
-          <a
-            href='https://www.instagram.com/'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <FontAwesomeIcon icon={faInstagram} size='sm' />
-          </a>
-          <a
-            href='https://twitter.com/'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <FontAwesomeIcon icon={faTwitter} size='sm' />
-          </a>
-          <a
-            href='https://www.reddit.com/'
-            target='_blank'
-            rel='noopener noreferrer'>
-            <FontAwesomeIcon icon={faReddit} size='sm' />
-          </a>
+        <Links />
+        <section className='weather'>
+          {this.state.weatherdata.icon.length > 0 ? (
+            <img src={imgUrl} alt={this.state.weatherdata.description} />
+          ) : (
+            ''
+          )}
+          {this.state.weatherdata.temp.length > 0 ? (
+            <h1>{this.state.weatherdata.temp + '°'}</h1>
+          ) : (
+            ''
+          )}
+          <p>{this.state.weatherdata.description}</p>
         </section>
-        <section className='weather'></section>
         <section className='headlines'></section>
       </main>
     );
