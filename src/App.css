@@ -25,6 +25,7 @@ h1 {
 h2 {
   font-family: 'Varela Round', sans-serif;
   font-size: 140%;
+  text-align: center;
   color: #ffffff;
   margin: 0;
 }
@@ -78,15 +79,68 @@ input {
 .headlines {
   display: flex;
   justify-content: center;
-  align-items: center;
   flex-direction: column;
   width: 100%;
   min-height: 200px;
   border-radius: 10px;
   background-color: #3e3e3e;
   margin-bottom: 30px;
+  padding: 10px 15px;
+}
+
+.weather {
+  align-items: center;
 }
 
 .weather > img {
-  width: 80px;
+  width: 50px;
+}
+
+.headlines {
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.headlines > p {
+  font-size: 90%;
+  margin: 5px 0;
+}
+
+.calendar {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-height: 50px;
+  border-radius: 10px;
+  background-color: #3e3e3e;
+  margin-bottom: 30px;
+  padding: 10px 15px;
+}
+
+.calendar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.calendar li {
+  border-left: 2px solid #599afc;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+
+.calendar li:last-child {
+  margin-bottom: 0px;
+}
+
+.calendar p {
+  font-size: 90%;
+}
+
+.cal-header {
+  font-size: 100%;
+  font-weight: bold;
 }
