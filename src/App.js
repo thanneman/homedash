@@ -87,7 +87,7 @@ class App extends Component {
       setTimeout(() => {
         Promise.all([
           fetch(
-            `http://api.weatherbit.io/v2.0/current?lat=${this.state.location.latitude}&lon=${this.state.location.longitude}&units=I&key=${process.env.REACT_APP_WEATHER_KEY}`
+            `https://api.weatherbit.io/v2.0/current?lat=${this.state.location.latitude}&lon=${this.state.location.longitude}&units=I&key=${process.env.REACT_APP_WEATHER_KEY}`
           ),
           fetch(
             `https://newsapi.org/v2/top-headlines?q=tech&apiKey=${process.env.REACT_APP_NEWS_KEY}`
