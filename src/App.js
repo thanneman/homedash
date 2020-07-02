@@ -72,8 +72,29 @@ class App extends Component {
     gapi.load('client', start);
   }
 
+  FetchDataFromRssFeed() {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = () => {
+      if (request.readyState === 4 && request.status === 200) {
+        var myObj = JSON.parse(request.responseText);
+        console.log(myObj.items);
+        this.setState({
+          headlines: myObj.items,
+        });
+      }
+    };
+    request.open(
+      'GET',
+      'https://api.rss2json.com/v1/api.json?rss_url=https://www.theverge.com/rss/front-page/index.xml',
+      true
+    );
+    request.send();
+  }
+
   componentDidMount() {
     this.getEvents();
+
+    this.FetchDataFromRssFeed();
 
     navigator.geolocation.getCurrentPosition((position) => {
       let lat = position.coords.latitude;
@@ -89,9 +110,6 @@ class App extends Component {
           fetch(
             `https://api.weatherbit.io/v2.0/current?lat=${this.state.location.latitude}&lon=${this.state.location.longitude}&units=I&key=${process.env.REACT_APP_WEATHER_KEY}`
           ),
-          fetch(
-            `https://newsapi.org/v2/top-headlines?q=tech&apiKey=${process.env.REACT_APP_NEWS_KEY}`
-          ),
         ])
           .then((res) => {
             // Get a JSON object from each of the responses
@@ -104,14 +122,12 @@ class App extends Component {
           .then((result) => {
             const { temp } = result[0].data[0];
             const { description, icon } = result[0].data[0].weather;
-            const allHeadlines = result[1].articles.slice(0, 6);
             this.setState({
               weatherdata: {
                 temp: temp,
                 description: description,
                 icon: icon,
               },
-              headlines: allHeadlines,
             });
           })
           .catch((err) => {
@@ -132,6 +148,7 @@ class App extends Component {
     const headlines = this.state.headlines.map((headline, i) => {
       return <Headlines {...headline} key={i} />;
     });
+
     // map over all headlines
     const calEvents = this.state.events.map((calEvent, i) => {
       if (calEvent) {
@@ -173,7 +190,7 @@ class App extends Component {
           <ul>{calEvents}</ul>
         </section>
         <section className='headlines'>
-          <h2>Top News in Tech</h2>
+          <h2>Articles from The Verge</h2>
           {headlines}
         </section>
       </main>
