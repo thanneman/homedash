@@ -7,7 +7,11 @@ import moment from 'moment';
 
 var gapi = window.gapi;
 var API_KEY = `${process.env.REACT_APP_GOOGLECAL_KEY}`;
-var CALENDAR_ID = `${process.env.REACT_APP_GOOGLECALID_KEY}`;
+var CLIENT_ID = `${process.env.REACT_APP_GOOGLECALCLIENT_KEY}`;
+var DISCOVERY_DOCS = [
+  'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest',
+];
+var SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
 
 class App extends Component {
   constructor(props) {
@@ -41,43 +45,42 @@ class App extends Component {
     window.open(usersearch, '_blank');
   }
 
-  getEvents() {
-    let that = this;
-    function start() {
-      gapi.client
-        .init({
-          apiKey: `${API_KEY}`,
-        })
-        .then(function() {
-          return gapi.client.request({
-            path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=10&orderBy=startTime&showDeleted=false&singleEvents=true&timeMin=${moment()
-              .startOf('day')
-              .toISOString()}&timeMax=${moment()
-              .endOf('day')
-              .toISOString()}`,
-          });
-        })
-        .then(
-          (response) => {
-            let events = response.result.items;
-            that.setState({
-              events: events,
-            });
-          },
-          function(reason) {
-            console.log(reason);
-          }
-        );
-    }
-    gapi.load('client', start);
-  }
+  // getEvents() {
+  //   let that = this;
+  //   function start() {
+  //     gapi.client
+  //       .init({
+  //         apiKey: `${API_KEY}`,
+  //       })
+  //       .then(function() {
+  //         return gapi.client.request({
+  //           path: `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?maxResults=10&orderBy=startTime&showDeleted=false&singleEvents=true&timeMin=${moment()
+  //             .startOf('day')
+  //             .toISOString()}&timeMax=${moment()
+  //             .endOf('day')
+  //             .toISOString()}`,
+  //         });
+  //       })
+  //       .then(
+  //         (response) => {
+  //           let events = response.result.items;
+  //           that.setState({
+  //             events: events,
+  //           });
+  //         },
+  //         function(reason) {
+  //           console.log(reason);
+  //         }
+  //       );
+  //   }
+  //   gapi.load('client', start);
+  // }
 
   FetchDataFromRssFeed() {
     var request = new XMLHttpRequest();
     request.onreadystatechange = () => {
       if (request.readyState === 4 && request.status === 200) {
         var myObj = JSON.parse(request.responseText);
-        console.log(myObj.items);
         this.setState({
           headlines: myObj.items,
         });
@@ -92,7 +95,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    this.getEvents();
+    // this.getEvents();
 
     this.FetchDataFromRssFeed();
 
@@ -139,17 +142,65 @@ class App extends Component {
     });
   }
 
+  handleClick() {
+    gapi.load('client:auth2', () => {
+      console.log('loaded client');
+
+      gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        discoveryDocs: DISCOVERY_DOCS,
+        scope: SCOPES,
+      });
+
+      gapi.client.load('calendar', 'v3');
+
+      gapi.auth2
+        .getAuthInstance()
+        .signIn()
+        .then(() => {
+          // get events
+          gapi.client.calendar.events
+            .list({
+              calendarId: 'primary',
+              timeMin: moment()
+                .startOf('day')
+                .toISOString(),
+              timeMax: moment()
+                .endOf('day')
+                .toISOString(),
+              showDeleted: false,
+              singleEvents: true,
+              maxResults: 10,
+              orderBy: 'startTime',
+            })
+            .then((result) => {
+              let gCalEvents = result.result.items;
+              console.log(gCalEvents);
+              this.setState({
+                events: gCalEvents,
+              });
+            })
+            .catch((err) => {
+              this.setState({
+                error: 'Something went wrong.',
+              });
+            });
+        });
+    });
+  }
+
   render() {
     // set url for weather icon
     const iconImg = this.state.weatherdata.icon;
     const imgUrl = `https://www.weatherbit.io/static/img/icons/${iconImg}.png`;
 
-    // map over all headlines
+    // map over headlines
     const headlines = this.state.headlines.map((headline, i) => {
       return <Headlines {...headline} key={i} />;
     });
 
-    // map over all headlines
+    // map over calendar events
     const calEvents = this.state.events.map((calEvent, i) => {
       if (calEvent) {
         return <CalEvents {...calEvent} key={i} />;
@@ -157,6 +208,7 @@ class App extends Component {
         return <p>No Calendar Events Today</p>;
       }
     });
+
     return (
       <main className='app'>
         <section className='search'>
@@ -188,6 +240,7 @@ class App extends Component {
         <section className='calendar'>
           <h2>{moment().format('ddd, MMMM Do')}</h2>
           <ul>{calEvents}</ul>
+          <button onClick={this.handleClick.bind(this)}>Button</button>
         </section>
         <section className='headlines'>
           <h2>Articles from The Verge</h2>
