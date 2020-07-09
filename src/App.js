@@ -138,7 +138,7 @@ class App extends Component {
               error: 'Something went wrong.',
             });
           });
-      }, 500);
+      }, 100);
     });
   }
 
@@ -202,7 +202,7 @@ class App extends Component {
 
     // map over calendar events
     const calEvents = this.state.events.map((calEvent, i) => {
-      if (calEvent) {
+      if (this.state.events && this.state.events.length) {
         return <CalEvents {...calEvent} key={i} />;
       } else {
         return <p>No Calendar Events Today</p>;
@@ -211,6 +211,9 @@ class App extends Component {
 
     return (
       <main className='app'>
+        <button className='google-signin' onClick={this.handleClick.bind(this)}>
+          Google Sign-in
+        </button>
         <section className='search'>
           <form className='search-form' onSubmit={(e) => this.handleSubmit(e)}>
             <input
@@ -225,12 +228,12 @@ class App extends Component {
         </section>
         <Links />
         <section className='weather'>
-          {this.state.weatherdata.icon.length > 0 ? (
+          {this.state.weatherdata.icon.length ? (
             <img src={imgUrl} alt={this.state.weatherdata.description} />
           ) : (
             ''
           )}
-          {!this.state.weatherdata.temp.length > 0 ? (
+          {!this.state.weatherdata.temp.length ? (
             <h1>{this.state.weatherdata.temp}</h1>
           ) : (
             ''
@@ -239,8 +242,11 @@ class App extends Component {
         </section>
         <section className='calendar'>
           <h2>{moment().format('ddd, MMMM Do')}</h2>
-          <ul>{calEvents}</ul>
-          <button onClick={this.handleClick.bind(this)}>Button</button>
+          {this.state.events && this.state.events.length ? (
+            <ul>{calEvents}</ul>
+          ) : (
+            <p>No Calendar Events Today</p>
+          )}
         </section>
         <section className='headlines'>
           <h2>Articles from The Verge</h2>

@@ -52,6 +52,12 @@ main {
   margin: 100px auto 0;
 }
 
+.google-signin {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 input {
   position: relative;
   width: 100%;
